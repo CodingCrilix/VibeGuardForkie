@@ -15,3 +15,7 @@ class Finding(BaseModel):
 
 class ScanResponse(BaseModel):
     findings: List[Finding]
+
+class ScanTextRequest(BaseModel):
+    text: str 
+    language: str = "auto"
