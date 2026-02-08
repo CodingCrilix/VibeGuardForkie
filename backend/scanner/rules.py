@@ -150,14 +150,26 @@ RULES: Tuple[Rule, ...] = (
     ),
 )
 
-def scan_text(path: str, text: str) -> List[Finding]:
+SECRET_RULE_IDS = {
+    "PRIVATE_KEY",
+    "AWS_ACCESS_KEY",
+    "BASIC_AUTH_URL",
+    "HARDCODED_SECRET",
+}
+
+SECRET_RULES: Tuple[Rule, ...] = tuple(
+    rule for rule in RULES if rule.id in SECRET_RULE_IDS
+)
+
+def scan_text(path: str, text: str, rules: Optional[Tuple[Rule, ...]] = None) -> List[Finding]:
     findings: List[Finding] = []
     ext = os.path.splitext(path)[1].lower()
+    active_rules = rules or RULES
 
     for line_no, line in enumerate(text.splitlines(), start=1):
         if not line.strip():
             continue
-        for rule in RULES:
+        for rule in active_rules:
             if rule.file_exts and ext not in rule.file_exts:
                 continue
             if rule.pattern.search(line):
