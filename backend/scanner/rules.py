@@ -173,12 +173,18 @@ def scan_text(path: str, text: str, rules: Optional[Tuple[Rule, ...]] = None) ->
             if rule.file_exts and ext not in rule.file_exts:
                 continue
             if rule.pattern.search(line):
+                snippet = line.strip()
+                if len(snippet) > SNIPPET_LIMIT:
+                    snippet = snippet[:SNIPPET_LIMIT] + "..."
                 findings.append(
                     Finding(
                         rule_id=rule.id,
                         severity=rule.severity,
                         message=rule.message,
                         location=line_no,
+                        path=path,
+                        line=line_no,
+                        snippet=snippet,
                     )
                 )
                 break
