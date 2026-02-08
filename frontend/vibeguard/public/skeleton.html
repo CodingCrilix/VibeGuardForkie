@@ -1,28 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="/styles.css" type="text/css">
+  <meta charset="utf-8" />
+  <title>VibeGuard Tester</title>
+  <link rel="stylesheet" href="/styles.css" type="text/css">
 </head>
 
 <body>
   <header>
     <h1>VibeGuard</h1>
-    <img src="/VibesGuard_Logo.png">
-    <p>Guarding your automated code against vulnerabilities  </p>
+    <img src="/VibesGuard_Logo.png" alt="VibeGuard Logo" width="96">
+    <p>Guarding your code repos against vulnerabilities</p>
   </header>
   <main>
     <article class="card">
       <h2>Paste Github Repository</h2>
-      <form action="/action_page/">
-          
-            <input type="text" id="flink" name="flink"><br>
-         
-        </form>
+      <form id="scan-form">
+        <!-- widened input for easier pasting of long repo URLs -->
+        <input type="url" id="flink" name="flink" placeholder="https://github.com/owner/repo" required
+               style="width:640px; max-width:100%; padding:0.75rem; font-size:1rem;" />
+        <button id="scan-btn" type="submit">Scan</button>
+      </form>
     </article>
     <article class="card">
       <h2>Flagged Messages</h2>
-      <p id="show-errors"></p>
+      <pre id="show-errors"></pre>
     </article>
   </main>
+
+  <script>
+    // Minimal client-side tester to POST to the Next.js proxy route
+    (function(){
+      const form = document.getElementById('scan-form');
+      const input = document.getElementById('flink');
+      const out = document.getElementById('show-errors');
+      const btn = document.getElementById('scan-btn');
+
+      function setLoading(on){
+        btn.disabled = on;
+        input.disabled = on;
+        btn.textContent = on ? 'Scanning…' : 'Scan';
+      }
+
+      form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        out.textContent = '';
+        const url = input.value.trim();
+        if(!url) return;
+        setLoading(true);
+        try{
+          const res = await fetch('/api/scan/github', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ repo_url: url })
+          });
+          const json = await res.json();
+          if(!res.ok){
+            out.textContent = 'Error: ' + (json.detail || json.error || JSON.stringify(json));
+          } else {
+            out.textContent = JSON.stringify(json, null, 2);
+          }
+        } catch(err){
+          out.textContent = 'Network error: ' + (err && err.message ? err.message : err);
+        } finally {
+          setLoading(false);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
