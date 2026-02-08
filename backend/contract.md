@@ -14,4 +14,3 @@
 - Fields are frozen for MVP
 - New optional fields may be added
 - Fields may not be renamed or removed
-
